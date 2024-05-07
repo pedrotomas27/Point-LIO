@@ -12,7 +12,7 @@ using namespace std;
 typedef pcl::PointXYZINormal PointType;
 typedef pcl::PointCloud<PointType> PointCloudXYZI;
 
-enum LID_TYPE{AVIA = 1, VELO16, OUST64, HESAIxt32}; //{1, 2, 3, 4}
+enum LID_TYPE{AVIA = 1, VELO16, OUST64, HESAIxt32, V_M1600, BPEARL}; //{1, 2, 3, 4}
 enum TIME_UNIT{SEC = 0, MS = 1, US = 2, NS = 3};
 enum Feature{Nor, Poss_Plane, Real_Plane, Edge_Jump, Edge_Plane, Wire, ZeroPoint};
 enum Surround{Prev, Next};
@@ -72,6 +72,44 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(hesai_ros::Point,
     (std::uint16_t, ring, ring)
 )
 
+namespace v_m1600 {
+  struct EIGEN_ALIGN16 Point {
+      PCL_ADD_POINT4D;
+      uint8_t intensity;
+      //float time;
+      uint32_t timestampSec;
+      uint32_t timestampNsec;
+      uint8_t ring;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  };
+}  // namespace v_m1600
+POINT_CLOUD_REGISTER_POINT_STRUCT(v_m1600::Point,
+    (float, x, x)
+    (float, y, y)
+    (float, z, z)
+    (std::uint8_t, intensity, intensity)
+    //(float, time, time)
+    (std::uint32_t, timestampSec, timestampSec)
+    (std::uint32_t, timestampNsec, timestampNsec)
+    (std::uint8_t , ring, ring)
+)
+namespace BPearl_ros {
+  struct EIGEN_ALIGN16 Point {
+      PCL_ADD_POINT4D;
+      float intensity;
+      double timestamp;
+      uint16_t ring;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  };
+}  // namespace velodyne_ros
+POINT_CLOUD_REGISTER_POINT_STRUCT(BPearl_ros::Point,
+    (float, x, x)
+    (float, y, y)
+    (float, z, z)
+    (float, intensity, intensity)
+    (double, timestamp, timestamp)
+    (std::uint16_t, ring, ring)
+)
 namespace ouster_ros {
   struct EIGEN_ALIGN16 Point {
       PCL_ADD_POINT4D;
@@ -127,6 +165,8 @@ class Preprocess
   void oust64_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
   void velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
   void hesai_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
+  void BPearl_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
+  void v_m1600_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
   void give_feature(PointCloudXYZI &pl, vector<orgtype> &types);
   void pub_func(PointCloudXYZI &pl, const ros::Time &ct);
   int  plane_judge(const PointCloudXYZI &pl, vector<orgtype> &types, uint i, uint &i_nex, Eigen::Vector3d &curr_direct);
